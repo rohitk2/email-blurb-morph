@@ -73,13 +73,6 @@ const Index = () => {
 
           {/* Output Section */}
           {jsonOutput && <JsonOutput data={jsonOutput} />}
-
-          {/* Future Features Hint */}
-          <div className="text-center pt-8 animate-in fade-in duration-1000 delay-700">
-            <p className="text-sm text-muted-foreground">
-              Coming soon: AI-powered semantic extraction with subject intent, tone analysis, and key action detection
-            </p>
-          </div>
         </div>
       </main>
     </div>
