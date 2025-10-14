@@ -1,0 +1,78 @@
+Product Requirements Document (PRD)
+Project: MailMorph.ai — Email-to-JSON Landing Page (MVP)
+1. Overview
+
+MailMorph.ai is a lightweight React + TypeScript web application that transforms unstructured email blurbs into structured data.
+
+In this MVP, users can paste an email into a text box, and on submission, the system extracts the first 10 words of that email and returns them as a JSON object.
+
+Future iterations will expand this logic to include semantic extraction (subject intent, tone, named entities, key actions, etc.) powered by Claude’s API — evolving MailMorph.ai into a smart email-parsing layer for automated workflows.
+
+2. Goals
+
+✅ Build a clean, modern landing page with a text box and a submit button.
+
+✅ On submission, process the text client-side and render a formatted JSON object showing the first 10 words.
+
+🔜 Future iteration: integrate Claude AI to parse email semantics and generate structured insights.
+
+3. User Flow
+
+User lands on MailMorph.ai landing page.
+
+Pastes or types an email blurb into the text box.
+
+Clicks “Generate JSON.”
+
+The system processes the text client-side and extracts the first 10 words.
+
+The resulting JSON output is displayed below in a syntax-highlighted block.
+
+4. Functional Requirements
+Frontend (React + TypeScript)
+
+Input Box:
+
+Multiline <textarea>
+
+Placeholder: “Paste your email blurb here…”
+
+Submit Button:
+
+Label: “Generate JSON”
+
+Disabled when input is empty
+
+Output Display:
+
+JSON rendered in a <pre> block
+
+Auto-formatted and syntax-highlighted (using a library like react-json-pretty)
+
+Logic
+
+On submission:
+
+Split the input string into words using text.split(/\s+/).
+
+Take the first 10 words.
+
+Construct a JSON object:
+
+{
+  "extracted_text": "first ten words here"
+}
+
+
+Render the JSON in the output area.
+
+Example:
+Input:
+
+“Hey team, just wanted to check if we’re still on for the meeting tomorrow at 3.”
+
+Output:
+
+{
+  "extracted_text": "Hey team, just wanted to check if we’re still"
+}
