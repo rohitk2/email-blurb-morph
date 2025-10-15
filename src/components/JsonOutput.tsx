@@ -1,7 +1,7 @@
 import { Card } from "@/components/ui/card";
 
 interface JsonOutputProps {
-  data: { extracted_text: string } | null;
+  data: { extracted_text: string; word_count?: number; max_words?: number } | null;
 }
 
 export const JsonOutput = ({ data }: JsonOutputProps) => {

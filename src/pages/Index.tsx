@@ -3,12 +3,13 @@ import { Button } from "@/components/ui/button";
 import { EmailInput } from "@/components/EmailInput";
 import { JsonOutput } from "@/components/JsonOutput";
 import { toast } from "@/hooks/use-toast";
+import { extractEmailToJson } from "@/components/EmailInput";
 
 const Index = () => {
   const [emailText, setEmailText] = useState("");
-  const [jsonOutput, setJsonOutput] = useState<{ extracted_text: string } | null>(null);
+  const [jsonOutput, setJsonOutput] = useState<{ extracted_text: string; word_count?: number; max_words?: number } | null>(null);
 
-  const handleGenerate = () => {
+  const handleGenerate = async () => {
     if (!emailText.trim()) {
       toast({
         title: "No input provided",
@@ -18,20 +19,21 @@ const Index = () => {
       return;
     }
 
-    // Extract first 10 words
-    const words = emailText.trim().split(/\s+/);
-    const firstTenWords = words.slice(0, 10).join(" ");
+    try {
+      const result = await extractEmailToJson(emailText, { max_words: 10 }); // calls FastAPI /extract
+      setJsonOutput(result);
 
-    const result = {
-      extracted_text: firstTenWords,
-    };
-
-    setJsonOutput(result);
-    
-    toast({
-      title: "JSON generated successfully",
-      description: "First 10 words extracted from your email.",
-    });
+      toast({
+        title: "JSON generated successfully",
+        description: "First 10 words extracted from your email.",
+      });
+    } catch (err: any) {
+      toast({
+        title: "Extraction failed",
+        description: err?.message ?? "Backend error",
+        variant: "destructive",
+      });
+    }
   };
 
   return (

@@ -1,0 +1,7 @@
+{
+  "dependencies": ["Backend"],
+  "graphs": {
+    "email_agent": "./email_parser_agent.py:graph"
+  },
+  "env": "./.env"
+}
