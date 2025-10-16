@@ -1,11 +1,13 @@
 import os
 import json
+import time
 from typing import Dict, TypedDict, Optional
 from dotenv import load_dotenv
 from pydantic import BaseModel
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_groq import ChatGroq
 from langgraph.graph import StateGraph, START, END
+from types import SimpleNamespace
 
 # Load environment variables (expects GEMINI_API_KEY)
 load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), ".env"), override=True)
@@ -24,6 +26,7 @@ class EmailAgentResponse(BaseModel):
     brokerage_confidence: float = 0.0
     complete_address: str = ""
     complete_address_confidence: float = 0.0
+    tokens_used: str = ""
 
 
 class EmailParserAgent:
@@ -93,7 +96,27 @@ Rules:
 
     async def parse(self, request: EmailAgentRequest) -> EmailAgentResponse:
         """Run the agent and produce the structured response."""
+        start_time = time.perf_counter()
         result = await self.chain.ainvoke({"email_blurb": request.email_blurb})
+
+        tokens_used = None
+        try:
+            meta = getattr(result, "response_metadata", {}) or {}
+            token_usage = meta.get("token_usage") or meta.get("usage") or {}
+            if isinstance(token_usage, dict):
+                total = token_usage.get("total_tokens")
+                if total is None:
+                    total = token_usage.get("total")
+                if total is None:
+                    inp = token_usage.get("input_tokens") or token_usage.get("prompt_tokens") or 0
+                    out = token_usage.get("output_tokens") or token_usage.get("completion_tokens") or 0
+                    total = inp + out
+                tokens_used = total
+        except Exception:
+            tokens_used = None
+
+        print(f"Tokens Used: {tokens_used}")
+
         raw = result.content or ""
 
         # Try to recover JSON if the model includes extra text/fences
@@ -115,6 +138,7 @@ Rules:
             broker_email_confidence=self._to_conf(data.get("broker_email_confidence", 0)),
             brokerage_confidence=self._to_conf(data.get("brokerage_confidence", 0)),
             complete_address_confidence=self._to_conf(data.get("complete_address_confidence", 0)),
+            tokens_used=str(tokens_used) if tokens_used is not None else ""
         )
 
     def _extract_json_str(self, text: str) -> str:
@@ -156,6 +180,7 @@ async def parse_node(state: EmailState) -> dict:
             "brokerage_confidence": res.brokerage_confidence,
             "complete_address": res.complete_address,
             "complete_address_confidence": res.complete_address_confidence,
+            "tokens_used": res.tokens_used,
         }
     except Exception as e:
         return {"error": str(e)}
@@ -166,3 +191,34 @@ builder.add_edge(START, "parse")
 builder.add_edge("parse", END)
 
 graph = builder.compile()
+
+if __name__ == "__main__":
+    import asyncio
+
+    sample_inputs = [
+        # Insurance broker-style signature (should be used)
+        "Hi team,\n\nCopying the broker for context.\n\nHarry Smith, AINS\nClearance Specialist\nABC Insurance Company\n123 Building Avenue, Chicago, IL 60601\nDirect: (312) 555-0100\nEmail: harry.smith@abcinsurance.com",
+        # Wholesaler-style signature (should NOT be preferred)
+        "Jerry Smith | Associate Broker, Property resident license: 1190929\nDirect: 111-111-1111 | Mobile: 111-112-1111 | jerry@abc.com\nABC Company | 123 Building Avenue, City, State | Top 10 Largest P&C Wholesaler | Five-Star Wholesale Broker | Best Places to Work in Insurance | Top Insurance Employers",
+        # Another broker-style signature
+        "Regards,\nSusan Miller\nMiller Insurance Group\n555 Market St, San Francisco, CA 94103\nsusan@millerins.com\nOffice: 415-555-0101",
+    ]
+
+    async def run_tests():
+        for i, email in enumerate(sample_inputs, 1):
+            print(f"\n=== Sample {i} ===")
+            req = EmailAgentRequest(email_blurb=email)
+            res = await agent.parse(req)
+            print("Parsed JSON:")
+            print(json.dumps({
+                "broker_name": res.broker_name,
+                "broker_name_confidence": res.broker_name_confidence,
+                "broker_email": res.broker_email,
+                "broker_email_confidence": res.broker_email_confidence,
+                "brokerage": res.brokerage,
+                "brokerage_confidence": res.brokerage_confidence,
+                "complete_address": res.complete_address,
+                "complete_address_confidence": res.complete_address_confidence,
+                "tokens_used": res.tokens_used,
+            }, indent=2))
+    asyncio.run(run_tests())

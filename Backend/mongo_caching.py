@@ -35,7 +35,6 @@ def cache_hit(email_blurb: str):
     if not doc:
         return False
 
-    # Return the required fields
     return {
         "broker_name": doc.get("broker_name", ""),
         "broker_email": doc.get("broker_email", ""),
@@ -102,7 +101,6 @@ def cache_insert(
     return str(result.inserted_id)
 
 if __name__ == "__main__":
-    # Hardcode values here and pass into the function
     email_blurb = "Hello, I am Bob. I am a broker at Bob Inc. My email is bob@gmail.com. My address is 123 Main St, Los Angeles, CA 90001."
     broker_name = "Bob"
     broker_email = "bob@gmail.com"
@@ -113,6 +111,7 @@ if __name__ == "__main__":
     broker_email_confidence = 0.98
     brokerage_confidence = 0.9
     complete_address_confidence = 0.88
+
 
     cache_insert(
         email_blurb=email_blurb,

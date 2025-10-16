@@ -1,7 +1,12 @@
 import { Card } from "@/components/ui/card";
 
 interface JsonOutputProps {
-  data: { extracted_text: string; word_count?: number; max_words?: number } | null;
+  data: {
+    broker_name: string;
+    broker_email: string;
+    brokerage: string;
+    complete_address: string;
+  } | null;
 }
 
 export const JsonOutput = ({ data }: JsonOutputProps) => {

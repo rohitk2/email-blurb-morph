@@ -3,15 +3,19 @@ import { Label } from "@/components/ui/label";
 
 export async function extractEmailToJson(
   text: string,
-  options?: { max_words?: number; baseUrl?: string }
-): Promise<{ extracted_text: string; word_count: number; max_words: number }> {
+  options?: { baseUrl?: string }
+): Promise<{
+  broker_name: string;
+  broker_email: string;
+  brokerage: string;
+  complete_address: string;
+}> {
   const baseUrl = options?.baseUrl ?? "http://localhost:8000";
   const res = await fetch(`${baseUrl}/extract`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       text,
-      max_words: options?.max_words ?? 10,
     }),
   });
 

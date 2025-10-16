@@ -7,7 +7,12 @@ import { extractEmailToJson } from "@/components/EmailInput";
 
 const Index = () => {
   const [emailText, setEmailText] = useState("");
-  const [jsonOutput, setJsonOutput] = useState<{ extracted_text: string; word_count?: number; max_words?: number } | null>(null);
+  const [jsonOutput, setJsonOutput] = useState<{
+    broker_name: string;
+    broker_email: string;
+    brokerage: string;
+    complete_address: string;
+  } | null>(null);
 
   const handleGenerate = async () => {
     if (!emailText.trim()) {
@@ -20,12 +25,12 @@ const Index = () => {
     }
 
     try {
-      const result = await extractEmailToJson(emailText, { max_words: 10 }); // calls FastAPI /extract
+      const result = await extractEmailToJson(emailText);
       setJsonOutput(result);
 
       toast({
         title: "JSON generated successfully",
-        description: "First 10 words extracted from your email.",
+        description: "Broker details extracted from your email.",
       });
     } catch (err: any) {
       toast({
