@@ -3,6 +3,7 @@ from pymongo.server_api import ServerApi
 import os
 from dotenv import load_dotenv
 from urllib.parse import quote_plus, unquote
+from email_blurb_hashing import hash as blurb_hash, unhash as blurb_unhash
 
 def cache_hit(email_blurb: str):
     # Load env and read URI
@@ -30,16 +31,24 @@ def cache_hit(email_blurb: str):
     db = client["MailMorph"]
     coll = db["cache"]
 
+    # Encryption toggle: 1 means on, else off
+    enc_on = os.getenv("ENCRYPTION_ON", "0") == "1"
+
+    print(f"enc_on: {enc_on}")
+    # (2) Hash before querying if encryption is on
+    query_blurb = blurb_hash(email_blurb) if enc_on else email_blurb
+
     # Try to find a matching document by email_blurb
-    doc = coll.find_one({"email_blurb": email_blurb})
+    doc = coll.find_one({"email_blurb": query_blurb})
     if not doc:
         return False
 
+    # (3) Unhash PII before returning if encryption is on
     return {
-        "broker_name": doc.get("broker_name", ""),
-        "broker_email": doc.get("broker_email", ""),
-        "brokerage": doc.get("brokerage", ""),
-        "complete_address": doc.get("complete_address", ""),
+        "broker_name": (blurb_unhash(doc.get("broker_name", "")) if enc_on else doc.get("broker_name", "")),
+        "broker_email": (blurb_unhash(doc.get("broker_email", "")) if enc_on else doc.get("broker_email", "")),
+        "brokerage": (blurb_unhash(doc.get("brokerage", "")) if enc_on else doc.get("brokerage", "")),
+        "complete_address": (blurb_unhash(doc.get("complete_address", "")) if enc_on else doc.get("complete_address", "")),
         "broker_name_confidence": float(doc.get("broker_name_confidence", 0.0)),
         "broker_email_confidence": float(doc.get("broker_email_confidence", 0.0)),
         "brokerage_confidence": float(doc.get("brokerage_confidence", 0.0)),
@@ -84,18 +93,23 @@ def cache_insert(
     db = client["MailMorph"]
     coll = db["cache"]
 
-    # Insert MailMorph structure (from arguments)
+    # Encryption toggle: 1 means on, else off
+    enc_on = os.getenv("ENCRYPTION_ON", "0") == "1"
+    print(f"enc_on: {enc_on}")
+
+    # (1) Hash PII before inserting if encryption is on
     doc = {
-        "email_blurb": email_blurb,
-        "broker_name": broker_name,
-        "broker_email": broker_email,
-        "brokerage": brokerage,
-        "complete_address": complete_address,
+        "email_blurb": (blurb_hash(email_blurb) if enc_on else email_blurb),
+        "broker_name": (blurb_hash(broker_name) if enc_on else broker_name),
+        "broker_email": (blurb_hash(broker_email) if enc_on else broker_email),
+        "brokerage": (blurb_hash(brokerage) if enc_on else brokerage),
+        "complete_address": (blurb_hash(complete_address) if enc_on else complete_address),
         "broker_name_confidence": broker_name_confidence,
         "broker_email_confidence": broker_email_confidence,
         "brokerage_confidence": brokerage_confidence,
         "complete_address_confidence": complete_address_confidence,
     }
+    # Insert only once to avoid duplicate _id errors
     result = coll.insert_one(doc)
     print(f"Inserted document id: {result.inserted_id}")
     return str(result.inserted_id)

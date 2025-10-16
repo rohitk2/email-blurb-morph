@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 from urllib.parse import quote_plus, unquote
 import random
 from datetime import datetime
+from email_blurb_hashing import hash as blurb_hash, unhash as blurb_unhash
 
 
 def insert_log(source_hash: str, cache_hit: bool, latency: float) -> str:
@@ -39,8 +40,12 @@ def insert_log(source_hash: str, cache_hit: bool, latency: float) -> str:
     db = client["MailMorph"]
     coll = db["Logging"]  # use Logging collection
 
+    # Encrypt source_hash if ENCRYPTION_ON=1
+    enc_on = os.getenv("ENCRYPTION_ON", "0") == "1"
+    safe_source = blurb_hash(str(source_hash)) if enc_on else str(source_hash)
+
     doc = {
-        "source_hash": str(source_hash),
+        "source_hash": safe_source,
         "cache_hit": bool(cache_hit),
         "latency": float(latency),
         # Store timestamp for sorting, but we won’t return it from get_logging()
@@ -88,9 +93,11 @@ def get_logging():
     items = []
     for doc in cursor:
         ts = doc.get("timestamp")
+        source_raw = str(doc.get("source_hash", ""))
+        short_source = (source_raw[:10] + "....") if source_raw else ""
         items.append({
             "request_id": str(doc.get("_id")),
-            "source_hash": str(doc.get("source_hash", "")),
+            "source_hash": short_source,
             "cache_hit": bool(doc.get("cache_hit", False)),
             "latency": float(doc.get("latency", 0.0)),
             "timestamp": ts.isoformat() if hasattr(ts, "isoformat") else (str(ts) if ts is not None else None),

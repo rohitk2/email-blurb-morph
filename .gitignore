@@ -27,4 +27,5 @@ Backend/.env
 Backend/.env.*
 Backend/.venv
 Backend/.langgraph_api
+Backend/testcases/
 Backend/__pycache__

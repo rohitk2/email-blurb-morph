@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 from urllib.parse import quote_plus, unquote
 import random
 from datetime import datetime
+from email_blurb_hashing import hash as blurb_hash, unhash as blurb_unhash
 
 def insert_tracing(tokens_used, latency):
     """
