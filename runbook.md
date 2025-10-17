@@ -47,3 +47,5 @@ I touched on the tune prompt section about how you can go into langgraph studio 
 Another way is to create a for-loop in the main. 
 
 I have sample_inputs inside the `email_agent_parser.py`. You can always modify it with your own input see what it does. That is a good way for checking 10 different prompts without having to enter it in manually try different scenarios to see where the agent trips up
+
+There is also a section in the langgraph studio in which you import CSV data to test multiple prompts. That is definitely something I want to explore more.
