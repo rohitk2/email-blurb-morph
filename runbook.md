@@ -6,9 +6,13 @@ For key rotation, since I am running this locally I don’t have a mechanism for
 
 
 LANGCHAIN_TRACING_V2=
+
 LANGSMITH_API_KEY=
+
 LANGCHAIN_PROJECT=
+
 GROQ_MODEL=
+
 HASH_SECRET_KEY=
 
 ENCRYPTION_ON=
