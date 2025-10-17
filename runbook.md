@@ -3,6 +3,8 @@
 For key rotation, since I am running this locally I don’t have a mechanism for key rotation. However, all of my keys are located in my .env 
 
 —-------------------------------------------------------------------
+
+
 LANGCHAIN_TRACING_V2=
 LANGSMITH_API_KEY=
 LANGCHAIN_PROJECT=
@@ -10,6 +12,8 @@ GROQ_MODEL=
 HASH_SECRET_KEY=
 
 ENCRYPTION_ON=
+
+
 —-------------------------------------------------------------------
 
 So to rotate keys you can manually change them. 
