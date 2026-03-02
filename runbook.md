@@ -24,7 +24,8 @@ So to rotate keys you can manually change them.
 
 However, if I were to implement this in product there are 2 approaches that come to mind based on past experiences: 
 
-(1) Grafiniti is deployed with Netlify. They use Doppler for key storage and rotation. 
+(1) My previous company is deployed with Netlify. They use Doppler for key storage and rotation. 
+
 (2) Another approach is AWS. AWS has multiple in-built key storage and rotational mechanisms, including KMS and Secrets Manager. 
 
 
